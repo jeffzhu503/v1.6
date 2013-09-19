@@ -612,15 +612,16 @@ long NewCom()
   Cpy_Com("SF", ".DAT", -1, -1, SrcNam, DestNam, ToLet);
 
   Cpy_Com("EC", ".DAT", -1, -1, SrcNam, DestNam, ToLet);
+  
   //Inject the value to Prices.Qtr = 0 2013
   {
     ActiveCom(ToLet);
 	PricesT Prices; 
 	DatIO("EC", "r", 18, &Prices, sizeof Prices);
 	Prices.Qtr = 0;
-	DatIO("EC", "w", 18, &Prices, sizeof Prices);
+	DatIO("EC", "r+", 18, &Prices, sizeof Prices);
 	ActiveCom(FromCom);
-  }
+  } 
 
   Cpy_Com("QTR", ".TXT", -1, -1, SrcNam, DestNam, ToLet);
 
@@ -719,7 +720,11 @@ void UI(void)
 	// Add new button for Economy Management window
 	if(PopOut == 200)	
 	{
-		SetupMenu(SP_I);
+		if(SetupMenu(SP_I) == 2)
+		{
+			goto L01;
+		}
+		
 		continue;
 	}
 

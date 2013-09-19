@@ -225,7 +225,7 @@ void EconMenu()  //Move to UI folder
 
 // This function draw Setup Menu after user clicks the button of Setup from the Main Menu
 // SP_I is the index of S community in the folder
-void SetupMenu(int SP_I)
+int SetupMenu(int SP_I)
 {
 	extern ListT InstrList, BankList, FormList;
 	int bH = 34, ws = bH + 8, bW = 300, Wid = 540; 
@@ -251,17 +251,20 @@ void SetupMenu(int SP_I)
         SeTxt(*But, NumComs > 1 ? "Main Menu" : "Exit");
 
         Get_Msgs();
-		if(PopOut == 230)
-		{
+
+		//if(PopOut == 230)
+		//{
 			//DrawEconManagementMain(); To Do: add this function back
-		}
+		//}
         if(PopOut == 2)
         {
           if(NumComs <= 1)
             exit(1);
-		  //The following condition shall not be true. 
-         //if( ! Coms)
-            //goto L01;
+		  //It is only true when creating the first community from Starting point S. 
+         if( NumComs > 1)
+           // goto L01;
+		   return 2; 
+
           Back_Win();
           break;
         }
@@ -434,5 +437,7 @@ void SetupMenu(int SP_I)
           continue;
         }
       }
+
+	  return 0; 
 }
 

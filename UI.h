@@ -48,7 +48,7 @@ long __stdcall WinProcN(HWND Wnd, uint WM, uint wp, long lp);
 
 // SetupMenu.cpp
 void EconMenu();
-void SetupMenu(int SP_I); 
+int SetupMenu(int SP_I); 
 
 //CommunityManager.cpp
 void AdminMenu();
