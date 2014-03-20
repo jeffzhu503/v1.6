@@ -311,8 +311,8 @@ void RunForward()
 	  LB {  Expenses(); }
 	  LB {  Books(); }
 
-      if(FromInstall)
-		Prices.Qtr = 0;
+      //if(FromInstall)
+	  //	Prices.Qtr = 0;
 	  //Prices.Qtr is assigned to a huge random number after it goes higher than 11 in the previous quarter. The crash is found by Ernie 
       //April 2009 update with SimQtr == 16 per the request from George as the first quarter is 01/13 now
 	  //2013, Bill and the team are creating the new starting point, we no longer need this logic here. 

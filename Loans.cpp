@@ -461,7 +461,7 @@ void CreateNewLoans()
           {	//q is pointing to pLoans[0][0]+120
 						//What is Alloc_A_New_Loan_Rec doing? allocates the memory that holds a list of loans in a single type.
             LoanT *q = Alloc_A_New_Loan_Rec(TypeI);
-            q->Id = ((long)SimQtr *10000+ ++Id);
+            q->Id = ((long)SimQtr *10000+ ++Id); 
             q->Type = TypeI + 1;
             q->MktVal = q->Amnt = Amnt;
             q->Mat = Mat;
@@ -608,140 +608,143 @@ void Gel(float *p, long L, float Tiny)
 void BkDecs()
 {
 
-  static float AmntAv[MaxB][MaxL][MaxCQ];
-  LB
-  {//Calculate AmntAv[MaxB][MaxL][MaxCQ]
-    for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-    {
-      float *av = AmntAv[Bank][intIndexOfCount];
+	static float AmntAv[MaxB][MaxL][MaxCQ];
+	LB
+	{//Calculate AmntAv[MaxB][MaxL][MaxCQ]
+		for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+		{
+			float *av = AmntAv[Bank][intIndexOfCount];
 			float *a = MarketAmntByTypeByQual[intIndexOfCount];
 			float *s = CurInternalMkShare[Bank][intIndexOfCount];
-      for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++) //MaxCQ = 3
-        av[intIndexOfCount] = a[intIndexOfCount] * s[intIndexOfCount];
-    }
-  }
-  LB
-  {// Process the data for bank report 275
+			for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++) //MaxCQ = 3
+				av[intIndexOfCount] = a[intIndexOfCount] * s[intIndexOfCount];
+		}
+	}
+	
+	LB
+	{// Process the data for bank report 275
 		//Calculates LoanRptT->New, Sales, NewCnt, OrgFees and LnSalesT->Amnt, Pay, Mat, Rate for Mortgage Banking.
-    if( ! MortBanking[Bank]) //Ac->MortBanking
-      continue;
-    {
-      LoanRptT *LnR = LoanRpt + Bank;
-      R275T *Sales = R275[Bank];
-      for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-      {
-        int M = LoanKonst.Mat[Fixed_rate];
-        float R = CMR[Bank][Fixed_rate][intIndexOfCount];
+		if( ! MortBanking[Bank]) //Ac->MortBanking
+			continue;
+		{
+			LoanRptT *LnR = LoanRpt + Bank;
+			R275T *Sales = R275[Bank];
+			for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+			{
+				int M = LoanKonst.Mat[Fixed_rate];
+				float R = CMR[Bank][Fixed_rate][intIndexOfCount];
 				float A = AmntAv[Bank][Fixed_rate][intIndexOfCount];
 				float F = NewLoans[Bank][Fixed_rate].OrigFee;
 				float P = A * Pmnt(R *.0025, M);
-        LnR->New[Fixed_rate] += A;
-        LnR->Sales[Fixed_rate] += A;
-        Sales[5].A += A;  //The total loan sales in report 275
-        LnR->NewCnt[Fixed_rate] += A / LoanKonst.LoanSize[Fixed_rate];
-        LnR->OrgFees[Fixed_rate] += A * F * .01;
-        {
-          LnSalesT *t = LnSales[Bank] + 5; 
-          float NewA = t->Amnt + A;
+				LnR->New[Fixed_rate] += A;
+				LnR->Sales[Fixed_rate] += A;
+				Sales[5].A += A;  //The total loan sales in report 275
+				LnR->NewCnt[Fixed_rate] += A / LoanKonst.LoanSize[Fixed_rate];
+				LnR->OrgFees[Fixed_rate] += A * F * .01;
+				{
+					LnSalesT *t = LnSales[Bank] + 5; 
+					float NewA = t->Amnt + A;
 					float W = A / NewA;
 					float W0 = 1-W;
-          t->Amnt = NewA;
-          t->Pay += P;
-          t->Mat = t->Mat *W0 + M * W;
-          t->Rate = t->Rate *W0 + R * W;
-        }
-      }
-    }
-  }
-  {//Calculate LoanRpt.NewByRep
-    static int SpLp[] =
-    {
-      1, 5, 5
-    };
-    static float Split[] =
-    {
-      1, .2, .2, .2, .2, .2, .2, .2, .3, .3, .2
-    };
-    LB
-    {//Distribut the new loan amount by the reported credit quality
-      LoanRptT *LnR = LoanRpt + Bank;
-      for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-      {
-        int ActI = 0;
+					t->Amnt = NewA;
+					t->Pay += P;
+					t->Mat = t->Mat *W0 + M * W;
+					t->Rate = t->Rate *W0 + R * W;
+				}
+			}
+		}
+	}
+
+	{//Calculate LoanRpt.NewByRep
+		static int SpLp[] =
+		{
+		  1, 5, 5
+		};
+		static float Split[] =
+		{
+		  1, .2, .2, .2, .2, .2, .2, .2, .3, .3, .2
+		};
+		LB
+		{//Distribut the new loan amount by the reported credit quality
+			LoanRptT *LnR = LoanRpt + Bank;
+			for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+			{
+				int ActI = 0;
 				int t = intIndexOfCount;
 				int MB = t == Fixed_rate && MortBanking[Bank];
-        float *av = AmntAv[Bank][intIndexOfCount];
+				float *av = AmntAv[Bank][intIndexOfCount];
 				float *act = ActSize[Bank][intIndexOfCount];
 				float *sp = Split;
-        for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-        {
+				for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+				{
 					float AV = av[intIndexOfCount];
 					float Max = SpLp[intIndexOfCount];
-          for(int intIndexOfCount = 0; intIndexOfCount < Max; intIndexOfCount++)
-          {
-            *act++ = AV * *sp++;
-            if(MB && ActI < 10)
-              LnR->NewByRep[t][Round(OffToAct[ActI++]) - 1] += act[intIndexOfCount];  //new loan by reported quality
-          }
-        }
-      }
-    }
-  }
-  {
-    float Conditions = Pow(EconBOQ.Econ.LLI, LoanKonst.LLExp); 
-    LB
-    {
-      int Pol = GenCredPol[Bank];  //General Credit Policy including Restricted - 1, Controlled - 3, Moderate - 4, and Expansive - 6
-      LoanRptT *LnR = LoanRpt + Bank;
-      for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-      {
-        int TypeI = intIndexOfCount;
-        if(TypeI == Fixed_rate && MortBanking[Bank])
-          continue;
-        static float PolToWght[] = { 1.1, 1, 1, .95 };
-        struct
-        {
-          float Act[MaxActCQ];
-        } Reported[MaxRepCQ] =
-        {
-          0
-        };
-        float Portion[MaxRepCQINPUT + 1] = //Portion of amount for this credit quality 0, 1 are in the same column in the report.
-        {
-          0
-        };
-        Gel(ActSize[Bank][TypeI], MaxActCQ - 1, LoanKonst.MinNewTyp[TypeI]);
-        {//Calculate Portion and Reported
-			float Sal1 = ELOS2[Bank][LnToSal[TypeI]]; //Effective Loan Officer Salary 
-			float Sal2 = ECAS[Bank][LnToSal[TypeI]]; //Effective Credit Administration Salary
-			float LL = PolToWght[Pol] *Conditions*Pow(Sal1, Sal1 > 1 ? 0 : LoanKonst.ELOS[TypeI])*Pow(Sal2, Sal2 > 1 ? 0 : LoanKonst.ECAS[TypeI]);
-			float L = Bound(LL, .8, 1.12);
-          for(int intIndexOfCount = 0; intIndexOfCount < MaxActCQ; intIndexOfCount++)
-          {
-            int Rep = Bound(Round(OffToAct[intIndexOfCount] *L) - 1, 0, 6);
-            float Amnt = ActSize[Bank][TypeI][intIndexOfCount];
+					for(int intIndexOfCount = 0; intIndexOfCount < Max; intIndexOfCount++)
+					{
+						*act++ = AV * *sp++;
+						if(MB && ActI < 10)
+						LnR->NewByRep[t][Round(OffToAct[ActI++]) - 1] += act[intIndexOfCount];  //new loan by reported quality
+					}
+				}
+			}
+		}
+	 }
+  
+	{
+		float Conditions = Pow(EconBOQ.Econ.LLI, LoanKonst.LLExp); 
+		LB
+		{
+			int Pol = GenCredPol[Bank];  //General Credit Policy including Restricted - 1, Controlled - 3, Moderate - 4, and Expansive - 6
+			LoanRptT *LnR = LoanRpt + Bank;
+			for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+			{
+				int TypeI = intIndexOfCount;
+				if(TypeI == Fixed_rate && MortBanking[Bank])
+				continue;
+				static float PolToWght[] = { 1.1, 1, 1, .95 };
+				struct
+				{
+					float Act[MaxActCQ];
+				} Reported[MaxRepCQ] =
+				{
+					0
+				};
+				float Portion[MaxRepCQINPUT + 1] = //Portion of amount for this credit quality 0, 1 are in the same column in the report.
+				{
+					0
+				};
+				Gel(ActSize[Bank][TypeI], MaxActCQ - 1, LoanKonst.MinNewTyp[TypeI]);
+			{//Calculate Portion and Reported
+				float Sal1 = ELOS2[Bank][LnToSal[TypeI]]; //Effective Loan Officer Salary 
+				float Sal2 = ECAS[Bank][LnToSal[TypeI]]; //Effective Credit Administration Salary
+				float LL = PolToWght[Pol] *Conditions*Pow(Sal1, Sal1 > 1 ? 0 : LoanKonst.ELOS[TypeI])*Pow(Sal2, Sal2 > 1 ? 0 : LoanKonst.ECAS[TypeI]);
+				float L = Bound(LL, .8, 1.12);
+				for(int intIndexOfCount = 0; intIndexOfCount < MaxActCQ; intIndexOfCount++)
+				{
+					int Rep = Bound(Round(OffToAct[intIndexOfCount] *L) - 1, 0, 6);
+					float Amnt = ActSize[Bank][TypeI][intIndexOfCount];
 
-			//Remove: using int InpRep instead.
-			//#define InpRep ! Rep ? 0 : Rep - 1
-						int InpRep = (! Rep ? 0 : Rep - 1);
-            Portion[InpRep] += Amnt;
-            Reported[Rep].Act[intIndexOfCount] += Amnt;
-          }
-        }
-        {//Re-calculate Portion based on the comparision between NewAvail (=Portion) and NewWanted
-          static float LCQ[] =
-          {
-            0, .1, .2, .4
-          }
-          , HCQ[] =
-          {
-            0, .25, .5, 1
-          };
-          for(int intIndexOfCount = 0; intIndexOfCount < MaxRepCQINPUT; intIndexOfCount++)
-          {
-            float NewAvail = Portion[intIndexOfCount];
-            if( ! NewAvail)
-              continue;
+					//Remove: using int InpRep instead.
+					//#define InpRep ! Rep ? 0 : Rep - 1
+					int InpRep = (! Rep ? 0 : Rep - 1);
+					Portion[InpRep] += Amnt;
+					Reported[Rep].Act[intIndexOfCount] += Amnt;
+				}
+			}
+			{//Re-calculate Portion based on the comparision between NewAvail (=Portion) and NewWanted
+			static float LCQ[] =
+			{
+				0, .1, .2, .4
+			}
+			, HCQ[] =
+			{
+				0, .25, .5, 1
+			};
+			for(int intIndexOfCount = 0; intIndexOfCount < MaxRepCQINPUT; intIndexOfCount++)
+			{
+				float NewAvail = Portion[intIndexOfCount];
+				if( ! NewAvail)
+					continue;
             float NewWanted = Desired[Bank][TypeI][intIndexOfCount] = FloorZ(Desired[Bank][TypeI][intIndexOfCount] - Current[Bank][TypeI][intIndexOfCount]);
             if(NewWanted >= NewAvail)
             {
@@ -819,216 +822,217 @@ void MktShare()
 	extern long EconSet_I;
 
 	//Calculates EBDB[Bank][TypeI] - the effective value of the business development budget for each bank for the loan type
-  static float AnnFeeRatio[MaxB][MaxL];
-  {
-    for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-    {
-      long TypeI = intIndexOfCount;
-      float X = 0;
-      LB X += EBDB[Bank][TypeI];
-      X *= RBanks;
-      LB EBDB[Bank][TypeI] = max(.6, (EBDB[Bank][TypeI] + 1) / (X + 1.2));
-    }
-  }
-  {	//Calculate ORIG_FEE[Bank][TypeI] - the origination fee plus two divided by the community average plus 2.0
-    for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-    {
-      long TypeI = intIndexOfCount;
-      float X = 0;
-      LB X += ORIG_FEE[Bank][TypeI];
-      X *= RBanks;
-      LB ORIG_FEE[Bank][TypeI] = (ORIG_FEE[Bank][TypeI] + 2) / (X + 2);
-    }
-  }
-  memmove(AnnFeeRatio, ANN_FEE, sizeof(ANN_FEE));
-  {//Calculates ANN_FEE[Bank][TypeI] - the annual fee plus 2.0 (percentage) or 20 (dollars) 
+	static float AnnFeeRatio[MaxB][MaxL];
+	{
+		for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+		{
+			long TypeI = intIndexOfCount;
+			float X = 0;
+			LB X += EBDB[Bank][TypeI];
+			X *= RBanks;
+			LB EBDB[Bank][TypeI] = max(.6, (EBDB[Bank][TypeI] + 1) / (X + 1.2));
+		}
+	}
+	{	//Calculate ORIG_FEE[Bank][TypeI] - the origination fee plus two divided by the community average plus 2.0
+		for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+		{
+			long TypeI = intIndexOfCount;
+			float X = 0;
+			LB X += ORIG_FEE[Bank][TypeI];
+			X *= RBanks;
+			LB ORIG_FEE[Bank][TypeI] = (ORIG_FEE[Bank][TypeI] + 2) / (X + 2);
+		}
+	}
+	memmove(AnnFeeRatio, ANN_FEE, sizeof(ANN_FEE));
+  
+	{//Calculates ANN_FEE[Bank][TypeI] - the annual fee plus 2.0 (percentage) or 20 (dollars) 
 		//Type 0,2,4,6,7 are 2 percentage.  
-    for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-    {
-      long TypeI = intIndexOfCount;
-      float X = 0;
-      LB X += ANN_FEE[Bank][TypeI];
-      X *= RBanks;
-      LB
-      {
-        long x = 20;
-        switch(TypeI)
-        {
-          case 0:
-          case 2:
-          case 4:
-          case 6:
-            x = 2;
-        }
-        ANN_FEE[Bank][TypeI] = (ANN_FEE[Bank][TypeI] + x) / (X + x);
-      }
-    }
-  }
-  {//Calculate RAMPShare[Bank][TypeI] - the rate adjustment maturity preference.
+	    for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+		{
+			long TypeI = intIndexOfCount;
+			float X = 0;
+			LB X += ANN_FEE[Bank][TypeI];
+			X *= RBanks;
+			LB
+			{
+		       long x = 20;
+				switch(TypeI)
+				{
+					case 0:
+					case 2:
+					case 4:
+					case 6:
+						x = 2;
+				}
+				ANN_FEE[Bank][TypeI] = (ANN_FEE[Bank][TypeI] + x) / (X + x);
+			}
+		}
+	}
+	{//Calculate RAMPShare[Bank][TypeI] - the rate adjustment maturity preference.
 		//RAMP for the loan type devided by the community average.  
-    long EconNum = (long)Env.Seq[EconSet_I - 1][SimQtr];
-    for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-    {
-      long TypeI = intIndexOfCount;
-      float X = 0;
-      LB X += RAMP[Bank][TypeI]; //RAMP is calculated in LoanDecisions(). 
-      if(EconNum == 10)
-        X /= NumBanks;
-      else
-      {
-        X += (10-NumBanks) *EconRAMP[TypeI];
-        X /= 10;
-      }
-      LB RAMPShare[Bank][TypeI] = RAMP[Bank][TypeI] / X;
-    }
-  }
-  //General credit policy divided by community average.  
+		long EconNum = (long)Env.Seq[EconSet_I - 1][SimQtr];
+		for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+		{
+			long TypeI = intIndexOfCount;
+			float X = 0;
+			LB X += RAMP[Bank][TypeI]; //RAMP is calculated in LoanDecisions(). 
+			if(EconNum == 10)
+				X /= NumBanks;
+			else
+			{
+				X += (10-NumBanks) *EconRAMP[TypeI];
+				X /= 10;
+			}
+			LB RAMPShare[Bank][TypeI] = RAMP[Bank][TypeI] / X;
+		}
+	}
+	//General credit policy divided by community average.  
 	//R(estricted)=1.0, C(ontrolled)=3.0, M(oderate)=4.0, E(xpansive)=6.0
-  float RelPol[MaxB];
-  static float PolToFac[] =
-  {
-    1, 3, 4, 6
-  };
-  float X = 0;
-  LB X += PolToFac[GenCredPol[Bank]];
-  X *= RBanks;
-  LB RelPol[Bank] = PolToFac[GenCredPol[Bank]] / X;
-  {//Calculate Rel_Pol[Bank][TypeI] and Sum_Pol. 
-    for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-    {
-      float Sum_Pol[MaxCQ] =
-      {
-        0
-      };
-      int TypeI = intIndexOfCount;
+	float RelPol[MaxB];
+	static float PolToFac[] =
+	{
+		1, 3, 4, 6
+	};
+	float X = 0;
+	LB X += PolToFac[GenCredPol[Bank]];
+	X *= RBanks;
+	LB RelPol[Bank] = PolToFac[GenCredPol[Bank]] / X;
+	{//Calculate Rel_Pol[Bank][TypeI] and Sum_Pol. 
+		for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+		{
+			float Sum_Pol[MaxCQ] =
+			{
+				0
+			};
+			int TypeI = intIndexOfCount;
 			int MortFxd = TypeI == Fixed_rate;
 			int NonMBs = 0;
-      LB
-      {
-        if( ! MortFxd ||  ! MortBanking[Bank])
-        {;
-          NonMBs++;
-          for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-            Sum_Pol[intIndexOfCount] += Rel_Pol[Bank][TypeI][intIndexOfCount];
-        }
-      }
-      {
-        for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-        {
-          float AvgPol =  ! NonMBs ? 0 : Sum_Pol[intIndexOfCount] / NonMBs;
-          LB
-          {
-            float &Pol = Rel_Pol[Bank][TypeI][intIndexOfCount];
+			LB
+			{	
+				if( ! MortFxd ||  ! MortBanking[Bank])
+				{;
+					NonMBs++;
+					for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+						Sum_Pol[intIndexOfCount] += Rel_Pol[Bank][TypeI][intIndexOfCount];
+				}
+			}
+			{
+				for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+				{
+					float AvgPol =  ! NonMBs ? 0 : Sum_Pol[intIndexOfCount] / NonMBs;
+					LB
+					{
+						float &Pol = Rel_Pol[Bank][TypeI][intIndexOfCount];
 						
-            if(MortFxd && MortBanking[Bank])
-            {
-              Pol = 1.25;
-              continue;
-            }
-            Pol =  ! AvgPol ? 1 : Pol / AvgPol;
-          }
-        }
-      }
-    }
-  }
-  {//LNRR is the relative interest rate for the bank and divide by the community average relative rate
-    long EconNum = (long)Env.Seq[EconSet_I - 1][SimQtr];
-    for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-    {
-      long TypeI = intIndexOfCount;
-      float Sum[MaxCQ] =
-      {
-        0, 0, 0
-      };
-      LB
-      {
-        for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-          Sum[intIndexOfCount] += LNRR[Bank][TypeI][intIndexOfCount] = CQ_rate[Bank][TypeI][intIndexOfCount] / CMR[Bank][TypeI][intIndexOfCount];
-      }
-      {
-        for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-        {
-          float AR = EconNum == 10 ? Sum[intIndexOfCount] / NumBanks: (Sum[intIndexOfCount] + 10-NumBanks) / 10;
-          LB LNRR[Bank][TypeI][intIndexOfCount] /= AR;
-        }
-      }
-    }
-  }
-  {//All these relative factors determine the market share for each bank for each loan. CurInternalMkShare  
-    float Them = 10-NumBanks, AllBanks[MaxCQ], Fac[11], F6;
-    long ESOps[] =
-    {
-      0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2
-    };
-    for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
-    {
-      long TypeI = intIndexOfCount;
-      for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-        AllBanks[intIndexOfCount] = Them;
-      LB
-      {
-        Fac[0] = Pow(EBDB[Bank][TypeI], LoanKonst.MkShare1[TypeI]);
-        Fac[1] = Pow(ELOS[Bank][LnToSal[TypeI]], LoanKonst.MkShare2[TypeI]);
-        Fac[2] = Pow(EPROC[Bank][ESOps[TypeI]], LoanKonst.MkShare3[TypeI]);
-        Fac[3] = (Pow(BRCH[Bank][0], LoanKonst.MkShare4[TypeI][0]) + Pow(BRCH[Bank][1], LoanKonst.MkShare4[TypeI][1]) + Pow(BRCH[Bank][2], LoanKonst.MkShare4[TypeI][2]) + Pow(BRCH[Bank][3], LoanKonst.MkShare4[TypeI][3])) / 4; //Fac[3] = 1;
-        Fac[4] = Pow(ORIG_FEE[Bank][TypeI], LoanKonst.MkShare5[TypeI]);
-        {
-          float X = LoanGlo[Bank].PlayersMS[TypeI];
-          Fac[5] = X == 1 ? 1 : Pow(X *NumBanks / 2+.5, LoanKonst.MkShare6[TypeI]);
-        }
-        F6 = 1;
-        memmove(LnFacs[Bank][TypeI] + 6, Fac, 6 *4);
-        {
-          for(int intIndexOfCount = 0; intIndexOfCount < 6; intIndexOfCount++)
-            F6 *= Fac[intIndexOfCount];
-        }
-        {
-          for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-          {
-            Fac[6] = Pow(ANN_FEE[Bank][TypeI], LoanKonst.MkShare7[TypeI][intIndexOfCount]);
-            Fac[7] = Pow(RAMPShare[Bank][TypeI], LoanKonst.MkShare8[TypeI][intIndexOfCount]);
-            Fac[8] = Pow(RelPol[Bank], LoanKonst.MkShare9[TypeI][intIndexOfCount]);
-            Fac[9] = Pow(Rel_Pol[Bank][TypeI][intIndexOfCount], LoanKonst.MkShare10[TypeI][intIndexOfCount]);
-            Fac[10] = Pow(LNRR[Bank][TypeI][intIndexOfCount], LoanKonst.MkShare11[TypeI][intIndexOfCount]);
-            {
-              float X = F6;
-              {
-                long i = 5;
-                while(++i < 11)
-                  X *= Fac[i];
-              }
-              AllBanks[intIndexOfCount] += CurInternalMkShare[Bank][TypeI][intIndexOfCount] = X;
-              {
-                long j = intIndexOfCount;
-                for(int intIndexOfCount = 0; intIndexOfCount < 5; intIndexOfCount++)
-                  LnFacs[Bank][TypeI][6+6+3 * intIndexOfCount + j] = Fac[6+intIndexOfCount];
-              }
-              LnFacs[Bank][TypeI][intIndexOfCount] = X;
-            }
-          }
-        }
-      }
-      float X = LoanKonst.RateLim[TypeI][0];
+			            if(MortFxd && MortBanking[Bank])
+						{
+							Pol = 1.25;
+							continue;
+						}
+						Pol =  ! AvgPol ? 1 : Pol / AvgPol;
+					}
+				}	
+			}
+		}
+	}
+	{//LNRR is the relative interest rate for the bank and divide by the community average relative rate
+		long EconNum = (long)Env.Seq[EconSet_I - 1][SimQtr];
+		for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+		{
+			long TypeI = intIndexOfCount;
+			float Sum[MaxCQ] =
+			{
+				0, 0, 0
+			};
+			LB
+			{
+				for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+				Sum[intIndexOfCount] += LNRR[Bank][TypeI][intIndexOfCount] = CQ_rate[Bank][TypeI][intIndexOfCount] / CMR[Bank][TypeI][intIndexOfCount];
+			}
+			{
+				for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+				{
+					float AR = EconNum == 10 ? Sum[intIndexOfCount] / NumBanks: (Sum[intIndexOfCount] + 10-NumBanks) / 10;
+					LB LNRR[Bank][TypeI][intIndexOfCount] /= AR;
+				}
+			}
+		}
+	}
+	{//All these relative factors determine the market share for each bank for each loan. CurInternalMkShare  
+		float Them = 10-NumBanks, AllBanks[MaxCQ], Fac[11], F6;
+		long ESOps[] =
+		{
+			0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 2, 2, 2
+		};
+		for(int intIndexOfCount = 0; intIndexOfCount < MaxL; intIndexOfCount++)
+		{
+			long TypeI = intIndexOfCount;
+			for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+			AllBanks[intIndexOfCount] = Them;
+			LB
+			{
+				Fac[0] = Pow(EBDB[Bank][TypeI], LoanKonst.MkShare1[TypeI]);
+				Fac[1] = Pow(ELOS[Bank][LnToSal[TypeI]], LoanKonst.MkShare2[TypeI]);
+				Fac[2] = Pow(EPROC[Bank][ESOps[TypeI]], LoanKonst.MkShare3[TypeI]);
+				Fac[3] = (Pow(BRCH[Bank][0], LoanKonst.MkShare4[TypeI][0]) + Pow(BRCH[Bank][1], LoanKonst.MkShare4[TypeI][1]) + Pow(BRCH[Bank][2], LoanKonst.MkShare4[TypeI][2]) + Pow(BRCH[Bank][3], LoanKonst.MkShare4[TypeI][3])) / 4; //Fac[3] = 1;
+				Fac[4] = Pow(ORIG_FEE[Bank][TypeI], LoanKonst.MkShare5[TypeI]);
+				{
+					float X = LoanGlo[Bank].PlayersMS[TypeI];
+					Fac[5] = X == 1 ? 1 : Pow(X *NumBanks / 2+.5, LoanKonst.MkShare6[TypeI]);
+				}
+				F6 = 1;
+				memmove(LnFacs[Bank][TypeI] + 6, Fac, 6 *4);
+				{
+					for(int intIndexOfCount = 0; intIndexOfCount < 6; intIndexOfCount++)
+						F6 *= Fac[intIndexOfCount];
+				}
+				{
+					for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+					{
+						Fac[6] = Pow(ANN_FEE[Bank][TypeI], LoanKonst.MkShare7[TypeI][intIndexOfCount]);
+						Fac[7] = Pow(RAMPShare[Bank][TypeI], LoanKonst.MkShare8[TypeI][intIndexOfCount]);
+						Fac[8] = Pow(RelPol[Bank], LoanKonst.MkShare9[TypeI][intIndexOfCount]);
+						Fac[9] = Pow(Rel_Pol[Bank][TypeI][intIndexOfCount], LoanKonst.MkShare10[TypeI][intIndexOfCount]);
+						Fac[10] = Pow(LNRR[Bank][TypeI][intIndexOfCount], LoanKonst.MkShare11[TypeI][intIndexOfCount]);
+						{
+							float X = F6;
+							{
+								long i = 5;
+								while(++i < 11)
+									X *= Fac[i];
+							}
+							AllBanks[intIndexOfCount] += CurInternalMkShare[Bank][TypeI][intIndexOfCount] = X;
+							{
+								long j = intIndexOfCount;
+								for(int intIndexOfCount = 0; intIndexOfCount < 5; intIndexOfCount++)
+									LnFacs[Bank][TypeI][6+6+3 * intIndexOfCount + j] = Fac[6+intIndexOfCount];
+							}
+				            LnFacs[Bank][TypeI][intIndexOfCount] = X;
+						}
+					}
+				}
+			}
+			float X = LoanKonst.RateLim[TypeI][0];
 			float Y = LoanKonst.RateLim[TypeI][1];
-      LB
-      {
-        {
-          for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-          {
-            LnFacs[Bank][TypeI][intIndexOfCount + 3] = AllBanks[intIndexOfCount];
+			LB
+			{
+				{
+					for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+					{
+						LnFacs[Bank][TypeI][intIndexOfCount + 3] = AllBanks[intIndexOfCount];
             //CurInternalMkShare[Bank][TypeI][intIndexOfCount] = .6 *CurInternalMkShare[Bank][TypeI][intIndexOfCount] / AllBanks[intIndexOfCount] + .4 *LoanGlo[Bank].InternalMkShare[TypeI][intIndexOfCount];
             //007-1  Loan market share change in weights  from .6 and .4 to  .75 and .25  (per memo of C. Haley  Jan, 2007)
-            CurInternalMkShare[Bank][TypeI][intIndexOfCount] = .75 *CurInternalMkShare[Bank][TypeI][intIndexOfCount] / AllBanks[intIndexOfCount] + .25 *LoanGlo[Bank].InternalMkShare[TypeI][intIndexOfCount];
-            if(LNRR[Bank][TypeI][intIndexOfCount] > X)
-              CurInternalMkShare[Bank][TypeI][intIndexOfCount] = max(0, CurInternalMkShare[Bank][TypeI][intIndexOfCount]*(Y - LNRR[Bank][TypeI][intIndexOfCount]) / (Y - X));
-            if(AnnFeeRatio[Bank][TypeI] > 2)
-              CurInternalMkShare[Bank][TypeI][intIndexOfCount] = max(0, CurInternalMkShare[Bank][TypeI][intIndexOfCount]*(5-AnnFeeRatio[Bank][TypeI]) / (5-2));
-            LoanGlo[Bank].InternalMkShare[TypeI][intIndexOfCount] = CurInternalMkShare[Bank][TypeI][intIndexOfCount];
-          }
-        }
-      }
-    }
-  }
+						CurInternalMkShare[Bank][TypeI][intIndexOfCount] = .75 *CurInternalMkShare[Bank][TypeI][intIndexOfCount] / AllBanks[intIndexOfCount] + .25 *LoanGlo[Bank].InternalMkShare[TypeI][intIndexOfCount];
+						if(LNRR[Bank][TypeI][intIndexOfCount] > X)
+							CurInternalMkShare[Bank][TypeI][intIndexOfCount] = max(0, CurInternalMkShare[Bank][TypeI][intIndexOfCount]*(Y - LNRR[Bank][TypeI][intIndexOfCount]) / (Y - X));
+						if(AnnFeeRatio[Bank][TypeI] > 2)
+							CurInternalMkShare[Bank][TypeI][intIndexOfCount] = max(0, CurInternalMkShare[Bank][TypeI][intIndexOfCount]*(5-AnnFeeRatio[Bank][TypeI]) / (5-2));
+						LoanGlo[Bank].InternalMkShare[TypeI][intIndexOfCount] = CurInternalMkShare[Bank][TypeI][intIndexOfCount];
+					}
+				}
+			}
+		}
+	}	
 }
 
 /// <summary> This function calculates the proportal loan amount based on loan grade. </summary>
@@ -2036,84 +2040,85 @@ void MatureEconAdj()
 /// <remarks> It calculates Desired[Bank][TypeI][intIndexOfCount].</remarks>
 void DesiredMk(float *Targ, float *MaxOut)
 {
-  static int TypeI =  - 1, Mk =  - 1;
-  //  Tells if we're looking at one or two MaxOut fields per CQ Target list
-  //  as found on the CreditAdmin decision form.
-  int Two[] = //1 or 2 is determeined by the number of rows used in the Credit Administration Decision form
-  {
-    2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1,  - 1
-  };
+	static int TypeI =  - 1, Mk =  - 1;
+	//  Tells if we're looking at one or two MaxOut fields per CQ Target list
+	//  as found on the CreditAdmin decision form.
+	int Two[] = //1 or 2 is determeined by the number of rows used in the Credit Administration Decision form
+	{
+		2, 2, 2, 1, 1, 1, 1, 2, 1, 1, 1, 1,  - 1
+	};
 	int _1_2 = Two[Mk = ++Mk % MaxC];
-  float T = 0, Frac[MaxRepCQINPUT];  //the number of column
-  {
-    Loop(MaxRepCQINPUT)T += Frac[J] = Targ[J];
-  }
-  //  Use the decisions to distribute dollar amounts.
-  //  T is typically 100 at at this point.
-  if(T)
-    T = 1 / T;
-  {
+	float T = 0, Frac[MaxRepCQINPUT];  //the number of column
+	{
+		Loop(MaxRepCQINPUT)T += Frac[J] = Targ[J];
+	}
+	//  Use the decisions to distribute dollar amounts.
+	//  T is typically 100 at at this point.
+	if(T)
+		T = 1 / T;
+	{
     //Loop(MaxRepCQINPUT)
-	for(int J = 0; J < MaxRepCQINPUT; J++)
-		Frac[J] *= T;
-  }
-  MaxOut--;
-  {
-    //Loop(_1_2)
+		for(int J = 0; J < MaxRepCQINPUT; J++)
+			Frac[J] *= T;
+	}
+	MaxOut--;
+	//{
+		//Loop(_1_2)
 	for(int J = 0; J < _1_2; J++)
-    {
-      TypeI = ++TypeI % MaxL;
-      float R;
-	  float Max = *++MaxOut;
-	  float *P = Rel_Pol[Bank][TypeI] - 1; 
-	  float *F = Frac - 1;
-	  float *C = Current[Bank][TypeI] - 1;
-      {
-        for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
-        {
-          R = (*++F + ( ! intIndexOfCount ? 0 :  *++F)) *Max / FloorHair(*++C + ( ! intIndexOfCount ? 0 :  *++C));
-          *++P = R < 1 ? .5 : er(.9 *R, 1.5);
-        }
-      }
-      for(int intIndexOfCount = 0; intIndexOfCount < MaxRepCQINPUT; intIndexOfCount++)
-        Desired[Bank][TypeI][intIndexOfCount] = Max * Frac[intIndexOfCount];
-    }
-  }
+	{
+		TypeI = ++TypeI % MaxL;
+		float R;
+		float Max = *++MaxOut;
+		float *P = Rel_Pol[Bank][TypeI] - 1; 
+		float *F = Frac - 1;
+		float *C = Current[Bank][TypeI] - 1;
+		//{
+		for(int intIndexOfCount = 0; intIndexOfCount < MaxCQ; intIndexOfCount++)
+		{
+			R = (*++F + ( ! intIndexOfCount ? 0 :  *++F)) *Max / FloorHair(*++C + ( ! intIndexOfCount ? 0 :  *++C));
+			*++P = R < 1 ? .5 : er(.9 *R, 1.5);
+		}
+		//}
+		for(int intIndexOfCount = 0; intIndexOfCount < MaxRepCQINPUT; intIndexOfCount++)
+			Desired[Bank][TypeI][intIndexOfCount] = Max * Frac[intIndexOfCount];
+	}
+	//}
 }
 
 /// <summary> This function initiates the loan routines and it converts some loan decisions from how they are on the screen to the internal format. </summary>
 /// <remarks> This function is called by Loans(). </remarks>
 void LoansStartUp()
 {
-  {
-    AcT *Ac = BOA[Bank] + YrsQtr;
-    IncomeOutGoT *Incm = &Ac->IncomeOutGo;
-    long d = (long)SellLnsDec[Bank].MortBanking;  //This is the input from Sell Loan Decision form.  
-    if(d == C)  //  C is security type 10. mnemonics for input fields.
-      Ac->MortBanking = 0;
-    if(d == I &&  ! Ac->MortBanking)
-    {
-      Ac->MortBanking = 1;
-      Incm->Expenses.OtherOpEx += LoanKonst.MBStartup / 1000;
-    }
-    MortBanking[Bank] = (long)Ac->MortBanking;
-  }
-  memset(LoanRpt + Bank, 0, sizeof(*LoanRpt));  //Clean up loan reports
-  {
-    ResT *e = &ResGlo[Bank].Eff;  //How effective the banks compete with each other when using their resources.  
+	{
+		AcT *Ac = BOA[Bank] + YrsQtr;
+		IncomeOutGoT *Incm = &Ac->IncomeOutGo;
+		long d = (long)SellLnsDec[Bank].MortBanking;  //This is the input from Sell Loan Decision form.  
+		if(d == C)  //  C is security type 10. mnemonics for input fields.
+			Ac->MortBanking = 0;
+		if(d == I &&  ! Ac->MortBanking)
+		{
+			Ac->MortBanking = 1;
+			Incm->Expenses.OtherOpEx += LoanKonst.MBStartup / 1000;
+		}
+		MortBanking[Bank] = (long)Ac->MortBanking;
+	}
+		memset(LoanRpt + Bank, 0, sizeof(*LoanRpt));  //Clean up loan reports
+		memset(Current + Bank, 0, sizeof(*Current)); //2014. Clean up the Current
+	{
+		ResT *e = &ResGlo[Bank].Eff;  //How effective the banks compete with each other when using their resources.  
 		//The values in e are calculated in Resources().  
-    memmove(EBDB[Bank], e->Media.Loans, 4 *MaxL); //Effective Business Development 
-    memmove(ELOS[Bank], e->Sal.Loans, 4 *MaxMD); //Effective Loan Officer Salary
-    memmove(ELOS2[Bank], e->Sal.Loans, 4 *MaxMD); //Effective Loan Officer Salary2
-    memmove(ECAS[Bank], e->Sal.Cred, 4 *MaxMD); //Effective Credit Administration Salary
-    memmove(EPROC[Bank], e->Sal.Ops, 4 *MaxOD); //Effective Operation Salary
-    memmove(BRCH[Bank], e->Premises, 4 *MaxPrem); //Effective Branches Cost
-  }
-//Calculates annual fees for loans.  
-#define AnnFee(T,N) ANN_FEE[ Bank ][ T ] = LoanDec [ Bank ].N  / Prices.LnFixPrices [ T ].Fee;
+		memmove(EBDB[Bank], e->Media.Loans, 4 *MaxL); //Effective Business Development 
+		memmove(ELOS[Bank], e->Sal.Loans, 4 *MaxMD); //Effective Loan Officer Salary
+		memmove(ELOS2[Bank], e->Sal.Loans, 4 *MaxMD); //Effective Loan Officer Salary2
+		memmove(ECAS[Bank], e->Sal.Cred, 4 *MaxMD); //Effective Credit Administration Salary
+		memmove(EPROC[Bank], e->Sal.Ops, 4 *MaxOD); //Effective Operation Salary
+		memmove(BRCH[Bank], e->Premises, 4 *MaxPrem); //Effective Branches Cost
+	}
+	//Calculates annual fees for loans.  
+	#define AnnFee(T,N) ANN_FEE[ Bank ][ T ] = LoanDec [ Bank ].N  / Prices.LnFixPrices [ T ].Fee;
 
-  Loop(MaxL) ANN_FEE[Bank][J] = 1;
-  AnnFee(0, NatFee)
+	Loop(MaxL) ANN_FEE[Bank][J] = 1;
+	AnnFee(0, NatFee)
 	AnnFee(2, MidMFee)
 	AnnFee(4, SmallBFee)
 	AnnFee(6, ImpExpFee)
@@ -2121,20 +2126,20 @@ void LoansStartUp()
 	AnnFee(12, HomeEquFee)
 	AnnFee(14, CCardFee)
 	GenCredPol[Bank] = (ulong)CredDec[Bank].GenCredPol - RE &0x3;  //Genenal Credit Policy is to save R/C/M/E based on user decision.  
-  CredDecT Cred = CredDec[Bank];
+	CredDecT Cred = CredDec[Bank];
 	//Sets Desired[Bank] 
-  DesiredMk(Cred.Nat.Targ, Cred.Nat.MaxOut);
-  DesiredMk(Cred.MidM.Targ, Cred.MidM.MaxOut);
-  DesiredMk(Cred.SmallB.Targ, Cred.SmallB.MaxOut);
-  DesiredMk(Cred.ImpExp.Targ, &Cred.ImpExp.MaxOut);
-  DesiredMk(Cred.Cons.Targ, &Cred.Cons.MaxOut);
-  DesiredMk(Cred.CommRe.Targ, &Cred.CommRe.MaxOut);
-  DesiredMk(Cred.MulFam.Targ, &Cred.MulFam.MaxOut);
-  DesiredMk(Cred.SingFam.Targ, Cred.SingFam.MaxOut);
-  DesiredMk(Cred.HomeEqu.Targ, &Cred.HomeEqu.MaxOut);
-  DesiredMk(Cred.Personal.Targ, &Cred.Personal.MaxOut);
-  DesiredMk(Cred.CredC.Targ, &Cred.CredC.MaxOut);
-  DesiredMk(Cred.Instal.Targ, &Cred.Instal.MaxOut);
+	DesiredMk(Cred.Nat.Targ, Cred.Nat.MaxOut);
+	DesiredMk(Cred.MidM.Targ, Cred.MidM.MaxOut);
+	DesiredMk(Cred.SmallB.Targ, Cred.SmallB.MaxOut);
+	DesiredMk(Cred.ImpExp.Targ, &Cred.ImpExp.MaxOut);
+	DesiredMk(Cred.Cons.Targ, &Cred.Cons.MaxOut);
+	DesiredMk(Cred.CommRe.Targ, &Cred.CommRe.MaxOut);
+	DesiredMk(Cred.MulFam.Targ, &Cred.MulFam.MaxOut);
+	DesiredMk(Cred.SingFam.Targ, Cred.SingFam.MaxOut);
+	DesiredMk(Cred.HomeEqu.Targ, &Cred.HomeEqu.MaxOut);
+	DesiredMk(Cred.Personal.Targ, &Cred.Personal.MaxOut);
+	DesiredMk(Cred.CredC.Targ, &Cred.CredC.MaxOut);
+	DesiredMk(Cred.Instal.Targ, &Cred.Instal.MaxOut);
 }
 
 float SumXMS[MaxL];
@@ -2432,6 +2437,8 @@ void Loans()
 
   memset(R275, 0, sizeof(R275));
   memset(NewLoans, 0, sizeof(NewLoans));
+  memset(Rel_Pol, 0, sizeof(Rel_Pol)); //2014 clean up Rel_Pol for each quarter before creating new loans
+
   LB LoansStartUp();
   LB SaleDecs();
   LB

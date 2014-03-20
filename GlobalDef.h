@@ -77,8 +77,10 @@ const float PremLossOnSale = .05;
 
 typedef float RC_T[21][8];
 
-// Per Erine request, change BaseSimYear from 2007 to 2009 (change made on 1/7/2007)
+// On 1/7/2007 Per Erine request, change BaseSimYear from 2007 to 2009 (change made on 1/7/2007)
 // On 1/8/2012, Bill would update the 2009 to 2012 for BaseSimYear 
+// On 10/23/2013, update the BaseSimYear from 2012 to 2014
+// For debugging purpose for G community, change back to 2012 for now. 
 enum
 {
 	RECSIZE = 0x400, MaxFloats = 256, RateSz = 45, BaseSimYear = 2012, _Blac = RGB(0, 0, 0), 

@@ -61,7 +61,7 @@ float Scale, CharW, CharH; // The size of a character for input and error messag
 // Variables are used in BMSimHelper.h
 //extern char LngDate[18], _LngDate[18];
 int SupressTimeStamp = 0; 
-int DisableRandom = 1; //2013, disable random for the development of the starting point and testing purpose 
+int DisableRandom = 0; //in 2013 we disabled random for the development of the starting point and testing purpose 
 int AutoTest = 0;
 
 //Remove: using procedure WL() instead.
